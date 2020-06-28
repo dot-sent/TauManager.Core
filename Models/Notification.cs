@@ -17,5 +17,6 @@ namespace TauManager.Models
         public byte RetryCount { get; set; }
         public NotificationKind Kind { get; set; }
         public string Audit { get; set; }
+        public string MessagePayloadJson { get; set; }
     }
 }
