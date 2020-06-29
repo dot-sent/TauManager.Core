@@ -74,7 +74,7 @@ namespace TauManager.BusinessLogic
                             messageBuilder.AppendFormat("⚠️ UTC Datetime: {0}\n", diff.Changes[Campaign.FieldNames.UTCDateTime]);
                             diff.Changes.Remove(Campaign.FieldNames.UTCDateTime);
                         }
-                        foreach(var key in diff.Changes.Keys)
+                        foreach(var key in diff.Changes.Keys.OrderBy(k => k))
                         {
                             messageBuilder.AppendFormat("{0}: {1}\n", key, diff.Changes[key]);
                         }
