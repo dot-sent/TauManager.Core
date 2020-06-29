@@ -1,7 +1,9 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using Microsoft.EntityFrameworkCore;
+using Newtonsoft.Json;
 using TauManager.Models;
 using TauManager.ViewModels;
 using static TauManager.Models.Notification;
@@ -60,13 +62,24 @@ namespace TauManager.BusinessLogic
                                 campaign.UTCDateString);
                         break;
                     case NotificationKind.CampaignUpdated:
-                        model.Message +=
-                            string.Format("A campaign you're following has been updated: it's now T{0}{1} at {2} on {3} ({4} UTC).\nMore details at https://dotsent.nl/Campaigns/",
-                                string.Join(null, campaign.TiersList.Select(t => t.ToString())),
-                                campaign.Difficulty.ToString(),
-                                campaign.Station,
-                                campaign.GCTDateString,
-                                campaign.UTCDateString);
+                        var diff = JsonConvert.DeserializeObject<CampaignDiff>(notification.MessagePayloadJson);
+                        var messageBuilder = new StringBuilder("A campaign you're following has been updated in the Manager:\n");
+                        if (diff.PlaceChange)
+                        {
+                            messageBuilder.AppendFormat("⚠️ Station: {0}\n", diff.Changes[Campaign.FieldNames.Station]);
+                            diff.Changes.Remove(Campaign.FieldNames.Station);
+                        }
+                        if (diff.TimeChange)
+                        {
+                            messageBuilder.AppendFormat("⚠️ UTC Datetime: {0}\n", diff.Changes[Campaign.FieldNames.UTCDateTime]);
+                            diff.Changes.Remove(Campaign.FieldNames.UTCDateTime);
+                        }
+                        foreach(var key in diff.Changes.Keys)
+                        {
+                            messageBuilder.AppendFormat("{0}: {1}\n", key, diff.Changes[key]);
+                        }
+                        messageBuilder.AppendLine("\nMore details: https://dotsent.nl/Campaigns/");
+                        model.Message += messageBuilder.ToString();
                         break;
                     case NotificationKind.CampaignSoon:
                         model.Message +=

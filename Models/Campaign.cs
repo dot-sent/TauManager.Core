@@ -2,12 +2,42 @@ using System.Linq;
 using System;
 using System.ComponentModel;
 using System.Collections.Generic;
+using Newtonsoft.Json;
 
 namespace TauManager.Models
 {
     [System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage]
+    public class CampaignDiff{
+        public Dictionary<string, string> Changes { get; set; }
+        [JsonIgnore]
+        public bool StatusChangeOnly => Changes.Count == 1 && Changes.ContainsKey(Campaign.FieldNames.Status);
+        [JsonIgnore]
+        public bool TimeChange => Changes.ContainsKey(Campaign.FieldNames.UTCDateTime);
+        [JsonIgnore]
+        public bool PlaceChange => Changes.ContainsKey(Campaign.FieldNames.Station);
+        [JsonIgnore]
+        public bool NoChanges => Changes.Count == 0;
+        public void AddChange(string key, object oldValue, object newValue)
+        {
+            Changes[key] = string.Format("{0} => {1}", oldValue, newValue);
+        }
+    }
+
+    [System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage]
     public class Campaign
     {
+        public static class FieldNames
+        {
+            public static string Station => "Station";
+            public static string UTCDateTime => "UTCDateTime";
+            public static string Difficulty => "Difficulty";
+            public static string Status => "Status";
+            public static string Manager => "Manager";
+            public static string Tiers => "Tiers";
+            public static string Comments => "Comments";
+            public static string Name => "Name";
+            public static string ExcludeFromLeaderboards => "ExcludeFromLeaderboards";
+        }
         public enum CampaignStatus : byte { Unknown, Assigned, Planned, InProgress, Abandoned, Completed, Failed, Skipped };
         public enum CampaignDifficulty : byte { Easy, Normal, Hard, Extreme };
         public int Id { get; set; }
@@ -89,5 +119,45 @@ namespace TauManager.Models
              }
         }
         public virtual IEnumerable<CampaignLoot> Loot { get; set; }
+
+        public CampaignDiff Diff(Campaign newValues)
+        {
+            var result = new CampaignDiff {
+                Changes = new Dictionary<string, string>(),
+            };
+            if (newValues.Difficulty != Difficulty)
+            {
+                result.AddChange(Campaign.FieldNames.Difficulty, Difficulty, newValues.Difficulty);
+            }
+            if (newValues.Station != Station)
+            {
+                result.AddChange(Campaign.FieldNames.Station, Station, newValues.Station);
+            }
+            if (newValues.Status != Status)
+            {
+                result.AddChange(Campaign.FieldNames.Status, Status, newValues.Status);
+            }
+            if (newValues.Tiers != Tiers)
+            {
+                result.AddChange(Campaign.FieldNames.Tiers, TiersString, newValues.TiersString);
+            }
+            if (newValues.UTCDateTime != UTCDateTime)
+            {
+                result.AddChange(Campaign.FieldNames.UTCDateTime, UTCDateString, newValues.UTCDateString);
+            }
+            if (newValues.Comments != Comments)
+            {
+                result.AddChange(Campaign.FieldNames.Comments, Comments, newValues.Comments);
+            }
+            if (newValues.ExcludeFromLeaderboards != ExcludeFromLeaderboards)
+            {
+                result.AddChange(Campaign.FieldNames.ExcludeFromLeaderboards, ExcludeFromLeaderboards, newValues.ExcludeFromLeaderboards);
+            }
+            if (newValues.ManagerId != ManagerId)
+            {
+                result.AddChange(Campaign.FieldNames.Manager, Manager.Name, newValues.Manager.Name);
+            }
+            return result;
+        }
     }
 }

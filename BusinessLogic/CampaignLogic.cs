@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using HtmlAgilityPack;
 using Microsoft.EntityFrameworkCore;
+using Newtonsoft.Json;
 using TauManager.Models;
 using TauManager.Utils;
 using TauManager.ViewModels;
@@ -164,6 +165,7 @@ namespace TauManager.BusinessLogic
             var playersToNotifyOfNewCampaign = new List<int>();
             var playersToNotifyOfUpdatedCampaign = new List<int>();
             var playersToNotifyOfCampaignSoon = new List<int>();
+            CampaignDiff diff = null;
             if (campaign.Id == 0)
             {
                 _dbContext.Add(campaign);
@@ -177,9 +179,11 @@ namespace TauManager.BusinessLogic
                     .Select(p => p.Id));
             } else {
                 var campaignExists = _dbContext.Campaign
+                    .Include(c => c.Manager)
                     .AsNoTracking() // We are going to just save the object from the input parameter
                     .FirstOrDefault(c => c.Id == campaign.Id && c.SyndicateId == syndicateId);
                 if (campaignExists == null) return null;
+                diff = campaignExists.Diff(campaign);
                 _dbContext.Update(campaign);
                 playersToNotifyOfUpdatedCampaign.AddRange(_dbContext.Player
                     .Where(p => p.SyndicateId == campaign.SyndicateId &&
@@ -226,16 +230,20 @@ namespace TauManager.BusinessLogic
                     }
                 );
             }
-            foreach(var id in playersToNotifyOfUpdatedCampaign)
+            if (!diff.NoChanges)
             {
-                _dbContext.Notification.Add(
-                    new Notification{
-                        RecipientId = id,
-                        RelatedId = campaign.Id,
-                        Kind = NotificationKind.CampaignUpdated,
-                        SendAfter = DateTime.Now
-                    }
-                );
+                foreach(var id in playersToNotifyOfUpdatedCampaign)
+                {
+                    _dbContext.Notification.Add(
+                        new Notification{
+                            RecipientId = id,
+                            RelatedId = campaign.Id,
+                            Kind = NotificationKind.CampaignUpdated,
+                            SendAfter = DateTime.Now,
+                            MessagePayloadJson = JsonConvert.SerializeObject(diff),
+                        }
+                    );
+                }
             }
             // Generate delayed notifications
             var sendAfter = campaign.UTCDateTime.Value.EnsureUTC().AddHours(-4);
