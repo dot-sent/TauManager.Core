@@ -20,5 +20,6 @@ namespace TauManager.BusinessLogic
         bool PlayerCanVolunteerForCampaign(int? playerId, int campaignId);
         Task<bool> VolunteerForCampaign(int? playerId, int campaignId);
         LeaderboardViewModel GetLeaderboard(int? playerId);
+        Campaign GetNextCampaignByDiscordLogin(string discordLogin);
     }
 }

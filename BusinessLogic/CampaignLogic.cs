@@ -679,5 +679,17 @@ namespace TauManager.BusinessLogic
             };
             return leaderboard;
         }
+
+        public Campaign GetNextCampaignByDiscordLogin(string discordLogin)
+        {
+            var player = _dbContext.Player.SingleOrDefault(p => p.DiscordLogin == discordLogin && p.DiscordAuthConfirmed);
+            if (player == null) return null;
+            var campaign = _dbContext.Campaign
+                .Include(c => c.Syndicate)
+                .Include(c => c.Manager)
+                .OrderBy(c => c.UTCDateTime)
+                .FirstOrDefault(c => c.SyndicateId == player.SyndicateId && c.UTCDateTime > DateTime.Now);
+            return campaign;
+        }
     }
 }
