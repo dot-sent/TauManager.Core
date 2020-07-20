@@ -230,7 +230,7 @@ namespace TauManager.BusinessLogic
                     }
                 );
             }
-            if (!diff.NoChanges)
+            if (diff != null && !diff.NoChanges)
             {
                 foreach(var id in playersToNotifyOfUpdatedCampaign)
                 {

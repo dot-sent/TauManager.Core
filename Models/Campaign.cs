@@ -155,7 +155,7 @@ namespace TauManager.Models
             }
             if (newValues.ManagerId != ManagerId)
             {
-                result.AddChange(Campaign.FieldNames.Manager, Manager.Name, newValues.Manager.Name);
+                result.AddChange(Campaign.FieldNames.Manager, Manager == null ? "<undefined>" : Manager.Name, newValues.Manager == null ? "<undefined>" : newValues.Manager.Name);
             }
             return result;
         }
