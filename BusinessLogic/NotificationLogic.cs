@@ -62,24 +62,29 @@ namespace TauManager.BusinessLogic
                                 campaign.UTCDateString);
                         break;
                     case NotificationKind.CampaignUpdated:
-                        var diff = JsonConvert.DeserializeObject<CampaignDiff>(notification.MessagePayloadJson);
-                        var messageBuilder = new StringBuilder("A campaign you're following has been updated in the Manager:\n");
-                        if (diff.PlaceChange)
+                        if (string.IsNullOrWhiteSpace(notification.MessagePayloadJson))
                         {
-                            messageBuilder.AppendFormat("⚠️ Station: {0}\n", diff.Changes[Campaign.FieldNames.Station]);
-                            diff.Changes.Remove(Campaign.FieldNames.Station);
+                            model.Message = "A campaign you're following has been updated in the Manager, check it out at https://dotsent.nl/Campaigns/.\n";
+                        } else {
+                            var diff = JsonConvert.DeserializeObject<CampaignDiff>(notification.MessagePayloadJson);
+                            var messageBuilder = new StringBuilder("A campaign you're following has been updated in the Manager:\n");
+                            if (diff.PlaceChange)
+                            {
+                                messageBuilder.AppendFormat("⚠️ Station: {0}\n", diff.Changes[Campaign.FieldNames.Station]);
+                                diff.Changes.Remove(Campaign.FieldNames.Station);
+                            }
+                            if (diff.TimeChange)
+                            {
+                                messageBuilder.AppendFormat("⚠️ UTC Datetime: {0}\n", diff.Changes[Campaign.FieldNames.UTCDateTime]);
+                                diff.Changes.Remove(Campaign.FieldNames.UTCDateTime);
+                            }
+                            foreach(var key in diff.Changes.Keys.OrderBy(k => k))
+                            {
+                                messageBuilder.AppendFormat("{0}: {1}\n", key, diff.Changes[key]);
+                            }
+                            messageBuilder.AppendLine("\nMore details: https://dotsent.nl/Campaigns/");
+                            model.Message += messageBuilder.ToString();
                         }
-                        if (diff.TimeChange)
-                        {
-                            messageBuilder.AppendFormat("⚠️ UTC Datetime: {0}\n", diff.Changes[Campaign.FieldNames.UTCDateTime]);
-                            diff.Changes.Remove(Campaign.FieldNames.UTCDateTime);
-                        }
-                        foreach(var key in diff.Changes.Keys.OrderBy(k => k))
-                        {
-                            messageBuilder.AppendFormat("{0}: {1}\n", key, diff.Changes[key]);
-                        }
-                        messageBuilder.AppendLine("\nMore details: https://dotsent.nl/Campaigns/");
-                        model.Message += messageBuilder.ToString();
                         break;
                     case NotificationKind.CampaignSoon:
                         model.Message +=
