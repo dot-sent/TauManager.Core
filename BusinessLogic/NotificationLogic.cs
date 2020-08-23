@@ -64,7 +64,7 @@ namespace TauManager.BusinessLogic
                     case NotificationKind.CampaignUpdated:
                         if (string.IsNullOrWhiteSpace(notification.MessagePayloadJson))
                         {
-                            model.Message = "A campaign you're following has been updated in the Manager, check it out at https://dotsent.nl/Campaigns/.\n";
+                            model.Message += "A campaign you're following has been updated in the Manager, check it out at https://dotsent.nl/Campaigns/.\n";
                         } else {
                             var diff = JsonConvert.DeserializeObject<CampaignDiff>(notification.MessagePayloadJson);
                             var messageBuilder = new StringBuilder("A campaign you're following has been updated in the Manager:\n");

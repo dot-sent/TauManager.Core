@@ -9,6 +9,7 @@ using TauManager.Models;
 using Microsoft.EntityFrameworkCore;
 using TauManager.Utils;
 using static TauManager.Models.Notification;
+using TauManager.Core.Utils;
 
 namespace TauManager.BusinessLogic
 {
@@ -22,7 +23,7 @@ namespace TauManager.BusinessLogic
             _campaignLogic = campaignLogic;
         }
 
-        public SyndicatePlayersViewModel GetSyndicateMetrics(int? playerId, bool includeInactive, int syndicateId)
+        public SyndicatePlayersViewModel GetSyndicatePlayers(int? playerId, bool includeInactive, int syndicateId)
         {
             var model = new SyndicatePlayersViewModel{
                 IncludeInactive = includeInactive,
@@ -472,35 +473,19 @@ namespace TauManager.BusinessLogic
 
             }
             var model = new HomePageViewModel{
-                Metrics = GetSyndicateMetrics(playerId, false, syndicateId ?? 0),
+                Metrics = GetSyndicatePlayers(playerId, false, syndicateId ?? 0),
                 Announcements = announcements,
             };
             return model;
         }
 
-        public PlayerDetailsChartData GetPlayerDetailsChartData(int id, byte interval, byte dataKind)
+        public ChartDataSet GetPlayerDetailsChartData(int id, byte interval, byte dataKind)
         {
-            var result = new PlayerDetailsChartData();
+            var result = new ChartDataSet();
             var player = _dbContext.Player.SingleOrDefault(p => p.Id == id);
             if (player == null) return result;
-            var startDate = DateTime.Today;
-            switch (interval)
-            {
-                case (byte)PlayerDetailsChartData.Interval.Week:
-                    startDate = startDate.AddDays(-7); break;
-                case (byte)PlayerDetailsChartData.Interval.Month1:
-                    startDate = startDate.AddMonths(-1); break;
-                case (byte)PlayerDetailsChartData.Interval.Month3:
-                    startDate = startDate.AddMonths(-3); break;
-                case (byte)PlayerDetailsChartData.Interval.Month6:
-                    startDate = startDate.AddMonths(-6); break;
-                case (byte)PlayerDetailsChartData.Interval.Year:
-                    startDate = startDate.AddYears(-1); break;
-                case (byte)PlayerDetailsChartData.Interval.Max:
-                    startDate = new DateTime(2018, 10, 28); break; // The Manager has received first data in October 2018
-                default: // This means invalid input data
-                    return result;
-            }
+            var startDate = ChartDataSet.GetStartDate(interval);
+            if (startDate == null) return result;
             var relevantData = _dbContext.PlayerHistory.Where(ph => ph.PlayerId == id && ph.RecordedAt >= startDate)
                 .OrderBy(ph => ph.RecordedAt)
                 .AsEnumerable() // Flesh out the data before client-side grouping
@@ -513,24 +498,24 @@ namespace TauManager.BusinessLogic
                 );
             switch (dataKind)
             {
-                case (byte)PlayerDetailsChartData.DataKind.StatsTotal:
+                case (byte)ChartDataSet.DataKind.StatsTotal:
                     result.AddRange(
-                        relevantData.Select(he => new PlayerDetailsChartDataPoint { t = he.RecordedAt, y = (double)he.HistoryEntry.StatTotal })
+                        relevantData.Select(he => new ChartDataPoint { t = he.RecordedAt, y = (double)he.HistoryEntry.StatTotal })
                     );
                     break;
-                case (byte)PlayerDetailsChartData.DataKind.Credits:
+                case (byte)ChartDataSet.DataKind.Credits:
                     result.AddRange(
-                        relevantData.Select(he => new PlayerDetailsChartDataPoint { t = he.RecordedAt, y = (double)he.HistoryEntry.Bank })
+                        relevantData.Select(he => new ChartDataPoint { t = he.RecordedAt, y = (double)he.HistoryEntry.Bank })
                     );
                     break;
-                case (byte)PlayerDetailsChartData.DataKind.Bonds:
+                case (byte)ChartDataSet.DataKind.Bonds:
                     result.AddRange(
-                        relevantData.Select(he => new PlayerDetailsChartDataPoint { t = he.RecordedAt, y = (double)he.HistoryEntry.Bonds })
+                        relevantData.Select(he => new ChartDataPoint { t = he.RecordedAt, y = (double)he.HistoryEntry.Bonds })
                     );
                     break;
-                case (byte)PlayerDetailsChartData.DataKind.XP:
+                case (byte)ChartDataSet.DataKind.XP:
                     result.AddRange(
-                        relevantData.Select(he => new PlayerDetailsChartDataPoint { t = he.RecordedAt, y = (double)he.HistoryEntry.Level })
+                        relevantData.Select(he => new ChartDataPoint { t = he.RecordedAt, y = (double)he.HistoryEntry.Level })
                     );
                     break;
                 default: // This means invalid input data

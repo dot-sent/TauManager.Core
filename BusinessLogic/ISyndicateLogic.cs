@@ -13,5 +13,7 @@ namespace TauManager.BusinessLogic
         SyndicatePlayerViewModel GetSyndicatePlayerAssignment();
         Task<bool> SetPlayerSyndicate(int playerId, int? syndicateId);
         Task<bool> SubmitSyndicateHistory(SyndicateInfoViewModel historyEntry);
+        SyndicateStatsViewModel GetSyndicateInfo(int syndicateId);
+        ChartDataSet GetSyndicateHistoricalData(int syndicateId, byte interval, byte dataKind);
     }
 }

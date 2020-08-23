@@ -11,9 +11,11 @@ namespace TauManager.BusinessLogic
     public class SyndicateLogic : ISyndicateLogic
     {
         private TauDbContext _dbContext { get; set; }
-        public SyndicateLogic(TauDbContext dbContext)
+        private IPlayerLogic _playerLogic { get; set; }
+        public SyndicateLogic(TauDbContext dbContext, IPlayerLogic playerLogic)
         {
             _dbContext = dbContext;
+            _playerLogic = playerLogic;
         }
 
         public Syndicate GetSyndicateByPlayerId(int playerId)
@@ -88,6 +90,74 @@ namespace TauManager.BusinessLogic
             _dbContext.Add(historyEntry);
             await _dbContext.SaveChangesAsync();
             return true;
+        }
+
+        public SyndicateStatsViewModel GetSyndicateInfo(int syndicateId)
+        {
+            var syndicate = _dbContext.Syndicate.SingleOrDefault(s => s.Id == syndicateId);
+            if (syndicate == null) return null;
+            var syndicateHistories = syndicate.History.ToList();
+            var lastMetrics = syndicateHistories.OrderByDescending(sh => sh.RecordedAt).FirstOrDefault();
+            if (lastMetrics == null) return null;
+            var playerStats = _playerLogic.GetSyndicatePlayers(0, false, syndicateId);
+            var response = new SyndicateStatsViewModel{
+                Bonds = lastMetrics.Bonds,
+                Credits = lastMetrics.Credits,
+                Level = lastMetrics.Level,
+                MembersCount = lastMetrics.MembersCount,
+                RecordedAt = lastMetrics.RecordedAt,
+                Tag = syndicate.Tag,
+                History = syndicateHistories,
+                PlayerStats = playerStats,
+            };
+
+            return response;
+        }
+
+        public ChartDataSet GetSyndicateHistoricalData(int syndicateId, byte interval, byte dataKind)
+        {
+            var result = new ChartDataSet();
+            var syndicate = _dbContext.Syndicate.SingleOrDefault(s => s.Id == syndicateId);
+            if (syndicate == null) return result;
+            var startDate = ChartDataSet.GetStartDate(interval);
+            if (startDate == null) return result;
+            var relevantData = _dbContext.SyndicateHistory.Where(sh => sh.SyndicateId == syndicateId && sh.RecordedAt >= startDate)
+                .OrderBy(sh => sh.RecordedAt)
+                .AsEnumerable() // Flesh out the data before client-side grouping
+                .GroupBy(sh => sh.RecordedAt.Date)
+                .Select(g =>
+                    new {
+                        RecordedAt = g.Key,
+                        HistoryEntry = g.OrderByDescending(sh => sh.RecordedAt).First()
+                    }
+                );
+            switch (dataKind)
+            {
+                case (byte)ChartDataSet.DataKind.MemberCount:
+                    result.AddRange(
+                        relevantData.Select(he => new ChartDataPoint { t = he.RecordedAt, y = (double)he.HistoryEntry.MembersCount })
+                    );
+                    break;
+                case (byte)ChartDataSet.DataKind.Credits:
+                    result.AddRange(
+                        relevantData.Select(he => new ChartDataPoint { t = he.RecordedAt, y = (double)he.HistoryEntry.Credits })
+                    );
+                    break;
+                case (byte)ChartDataSet.DataKind.Bonds:
+                    result.AddRange(
+                        relevantData.Select(he => new ChartDataPoint { t = he.RecordedAt, y = (double)he.HistoryEntry.Bonds })
+                    );
+                    break;
+                case (byte)ChartDataSet.DataKind.XP:
+                    result.AddRange(
+                        relevantData.Select(he => new ChartDataPoint { t = he.RecordedAt, y = (double)he.HistoryEntry.Level })
+                    );
+                    break;
+                default: // This means invalid input data
+                    return result;
+            }
+
+            return result;
         }
     }
 }
