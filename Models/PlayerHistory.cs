@@ -55,7 +55,7 @@ namespace TauManager.Models
         {
             get
             {
-                return Strength + Stamina + Agility;
+                return Strength + Stamina + Agility + Intelligence;
             }
         }
     }

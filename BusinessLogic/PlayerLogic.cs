@@ -36,6 +36,7 @@ namespace TauManager.BusinessLogic
                 Strength = g.Average(p => p.Strength),
                 Stamina = g.Average(p => p.Stamina),
                 Agility = g.Average(p => p.Agility),
+                Intelligence = g.Average(p => p.Intelligence),
                 StatTotalMedian = Statistics.Median(g.Select(p => (double)p.StatTotal)),
                 StatTotalStdDev = Statistics.StandardDeviation(g.Select(p => (double)p.StatTotal)),
             }).ToDictionary(p => p.Tier, p => p);
@@ -47,10 +48,11 @@ namespace TauManager.BusinessLogic
             {
                 var min = statBoundaries[i];
                 var max = statBoundaries[i+1];
-                // [StatTotal]
+                // [StatTotal], not using the property here to perform
+                // the calculations directly in the query
                 model.PlayerCountByStatTotal[new KeyValuePair<int, int>(min, max)] = 
-                    allPlayers.Count(p => p.Strength + p.Stamina + p.Agility >= min && 
-                        p.Strength + p.Stamina + p.Agility < max &&
+                    allPlayers.Count(p => p.Strength + p.Stamina + p.Agility + p.Intelligence >= min &&
+                        p.Strength + p.Stamina + p.Agility + p.Intelligence < max &&
                         p.Active);
             }
             if (!playerId.HasValue)

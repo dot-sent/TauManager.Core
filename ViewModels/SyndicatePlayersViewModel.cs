@@ -17,19 +17,28 @@ namespace TauManager.ViewModels
             public decimal Stamina { get; set; }
             [DisplayFormat(DataFormatString = "{0:N3}")]
             public decimal Agility { get; set; }
+            [DisplayFormat(DataFormatString = "{0:N3}")]
+            public decimal Intelligence { get; set; }
 
             [DisplayFormat(DataFormatString = "{0:N3}")]
             public decimal StatTotal 
             {
                 get
                 {
-                    return Strength + Stamina + Agility;
+                    return Strength + Stamina + Agility + Intelligence;
                 }
             }
             [DisplayFormat(DataFormatString = "{0:N3}")]
             public double StatTotalMedian { get; set; }
             [DisplayFormat(DataFormatString = "{0:N3}")]
             public double StatTotalStdDev { get; set; }
+
+            public static sbyte StatClass(decimal stat, decimal average)
+            {
+                if (stat < average * 0.8m) return -1;
+                if (stat > average * 1.2m) return 1;
+                return 0;
+            }
         }
         public class LastPlayerActivity
         {
