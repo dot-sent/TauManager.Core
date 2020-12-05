@@ -308,6 +308,10 @@ namespace TauManager.BusinessLogic
                         (cl.Status == CampaignLoot.CampaignLootStatus.Undistributed ||
                         cl.Status == CampaignLoot.CampaignLootStatus.StaysWithSyndicate))
                     .ToList(), // ToList() is, sadly, necessary to persist syndicate info/tag.
+                Players = _dbContext.Player
+                    .Where(p => p.SyndicateId == syndicateId) // Including also inactive players to preserve the info
+                    .OrderBy(p => p.Name)
+                    .ToList(),
                 LootStatuses = EnumExtensions.ToDictionary<int>(typeof(CampaignLoot.CampaignLootStatus)),
                 TypeFilters = EnumExtensions.ToDictionary<int>(typeof(Item.ItemTypeFilters)),
                 Display = display,
