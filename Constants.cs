@@ -2,6 +2,6 @@ namespace TauManager
 {
     public static class Constants
     {
-        public static int MaxUniversityCourses = 129;
+        public static int MaxUniversityCourses = 132;
     }
 }
