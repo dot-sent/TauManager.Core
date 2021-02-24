@@ -137,7 +137,7 @@ namespace TauManager.BusinessLogic
             document.LoadHtml(fileContents);
             var characterName = document.DocumentNode.SelectSingleNode("//*[contains(concat(\" \",normalize-space(@class),\" \"),\" character-name \")]").InnerHtml.Trim();
             var recordedAt = DateTime.Parse(document.DocumentNode.SelectSingleNode("//html").Attributes["data-time"].Value);
-            var levelText = document.DocumentNode.SelectSingleNode("//*[contains(concat(\" \",normalize-space(@class),\" \"),\" statistics \")]/dd[position()=3]").InnerHtml.Trim();
+            var levelText = document.DocumentNode.SelectSingleNode("//*[contains(concat(\" \",normalize-space(@class),\" \"),\" statistics \")]/dd[position()=5]").InnerHtml.Trim();
             var levelParts = levelText.Split(" @ ");
             decimal level = int.Parse(levelParts[0]) + (decimal.Parse(levelParts[1].Replace("%", "")) / 100);
             var lastCourseDate = Utils.GCT.ParseGCTDate(document.DocumentNode.SelectSingleNode("//*[contains(concat(\" \",normalize-space(@class),\" \"),\" not-enrolled \")]").InnerHtml.Trim());
