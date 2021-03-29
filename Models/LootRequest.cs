@@ -17,5 +17,6 @@ namespace TauManager.Models
         public virtual CampaignLoot Loot { get; set; }
         public string SpecialOfferDescription { get; set; }
         public virtual PlayerListPositionHistory HistoryEntry { get; set; }
+        public bool IsCollectorRequest { get; set; }
     }
 }
