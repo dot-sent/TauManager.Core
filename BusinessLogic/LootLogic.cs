@@ -177,7 +177,7 @@ namespace TauManager.BusinessLogic
             return result;
         }
 
-        public async Task<bool> ApplyForLoot(int lootId, int playerId, string comments, int? currentPlayerId, bool specialOffer, bool deleteRequest)
+        public async Task<bool> ApplyForLoot(int lootId, int playerId, string comments, int? currentPlayerId, bool specialOffer, bool collectorRequest, bool deleteRequest)
         {
             var lootItem = _dbContext.CampaignLoot.Include(cl => cl.Campaign).SingleOrDefault(cl => cl.Id == lootId);
             if (lootItem == null) return false;
@@ -200,12 +200,14 @@ namespace TauManager.BusinessLogic
                     RequestedById = currentPlayerId ?? 0,
                     RequestedForId = playerId,
                     Status = specialOffer ? LootRequest.LootRequestStatus.SpecialOffer : LootRequest.LootRequestStatus.Interested,
+                    IsCollectorRequest = collectorRequest,
                     SpecialOfferDescription = comments,
                 };
                 await _dbContext.AddAsync(lootRequest);
             } else {
                 lootRequest.Status = specialOffer ? LootRequest.LootRequestStatus.SpecialOffer : LootRequest.LootRequestStatus.Interested;
                 lootRequest.SpecialOfferDescription = comments;
+                lootRequest.IsCollectorRequest = collectorRequest;
             }
             await _dbContext.SaveChangesAsync();
             return true;
