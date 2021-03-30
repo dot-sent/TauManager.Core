@@ -370,6 +370,7 @@ namespace TauManager.BusinessLogic
                         Status = (LootRequestViewModel.LootRequestStatus)r.Status,
                         SpecialOfferDescription = r.SpecialOfferDescription,
                         AttendedCampaign = r.Loot.Campaign.Attendance.Any(a => a.PlayerId == r.RequestedForId),
+                        IsCollectorRequest = r.IsCollectorRequest,
                     }
                 )
              };

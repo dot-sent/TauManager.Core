@@ -12,5 +12,6 @@ namespace TauManager.ViewModels
         public int ActivePlayerPosition { get; set; }
         public string SpecialOfferDescription { get; set; }
         public bool AttendedCampaign { get; set; }
+        public bool IsCollectorRequest { get; set; }
     }
 }
