@@ -137,13 +137,13 @@ namespace TauManager.BusinessLogic
             return true;
         }
 
-        public LootItemViewModel CreateNewLootApplication(int lootItemId, int playerId, int? currentPlayerId)
+        public LootItemViewModel CreateNewLootApplication(int lootItemId, int playerId, int? currentPlayerId, bool isPersonalRequest)
         {
             var lootItem = _dbContext.CampaignLoot.Include(cl => cl.Campaign).SingleOrDefault(cl => cl.Id == lootItemId);
             if (lootItem == null) return null;
             var player = _dbContext.Player.SingleOrDefault(p => p.Id == playerId);
             if (player == null) return null;
-            if (lootItem.Campaign.SyndicateId != player.SyndicateId) return null; // TODO: Allow cross-syndicate LRs?
+            //if (lootItem.Campaign.SyndicateId != player.SyndicateId) return null; // TODO: Allow cross-syndicate LRs?
             var existingRequest = _dbContext.LootRequest.SingleOrDefault(lr => lr.LootId == lootItemId && lr.RequestedForId == playerId);
             LootItemViewModel result;
             if (existingRequest != null) 
@@ -164,6 +164,7 @@ namespace TauManager.BusinessLogic
                     Loot = lootItem,
                     RequestedForId = playerId,
                     RequestedById = currentPlayerId ?? 0,
+                    IsPersonalRequest = isPersonalRequest,
                 };
                 result = new LootItemViewModel{
                     Request = newRequest,
@@ -177,7 +178,7 @@ namespace TauManager.BusinessLogic
             return result;
         }
 
-        public async Task<bool> ApplyForLoot(int lootId, int playerId, string comments, int? currentPlayerId, bool specialOffer, bool collectorRequest, bool deleteRequest)
+        public async Task<bool> ApplyForLoot(int lootId, int playerId, string comments, int? currentPlayerId, bool specialOffer, bool collectorRequest, bool isPersonalRequest, bool deleteRequest)
         {
             var lootItem = _dbContext.CampaignLoot.Include(cl => cl.Campaign).SingleOrDefault(cl => cl.Id == lootId);
             if (lootItem == null) return false;
@@ -201,6 +202,7 @@ namespace TauManager.BusinessLogic
                     RequestedForId = playerId,
                     Status = specialOffer ? LootRequest.LootRequestStatus.SpecialOffer : LootRequest.LootRequestStatus.Interested,
                     IsCollectorRequest = collectorRequest,
+                    IsPersonalRequest = isPersonalRequest,
                     SpecialOfferDescription = comments,
                 };
                 await _dbContext.AddAsync(lootRequest);
@@ -357,6 +359,7 @@ namespace TauManager.BusinessLogic
             var activePlayerPositions = playersOrdered.Where(p => p.Active).Select(p => p.Id).ToList();
 
             return new LootitemRequestsViewModel{ Requests = item.Requests
+                .Where(r => !r.IsPersonalRequest)
                 .OrderBy(
                     r => activePlayerPositions.IndexOf(r.RequestedForId)
                 )

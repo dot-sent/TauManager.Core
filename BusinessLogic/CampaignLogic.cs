@@ -78,12 +78,12 @@ namespace TauManager.BusinessLogic
                         ShowApplyButton = showLootApplyButton,
                         ShowEditControls = showLootEditControls,
                         ShowAwardButton = showAwardButton,
-                        RequestExists = l.Requests.Any(r => r.RequestedForId == playerId),
-                        Request = l.Requests.SingleOrDefault(r => r.RequestedForId == playerId),
+                        RequestExists = l.Requests.Any(r => r.RequestedForId == playerId && !r.IsPersonalRequest),
+                        Request = l.Requests.SingleOrDefault(r => r.RequestedForId == playerId && !r.IsPersonalRequest),
                         LootStatuses = EnumExtensions.ToDictionary<int>(typeof(CampaignLoot.CampaignLootStatus)),
                         Players = players,
                         AllRequests = l.Requests
-                            .Where(r => r.RequestedFor.SyndicateId == syndicateId)
+                            .Where(r => r.RequestedFor.SyndicateId == syndicateId && !r.IsPersonalRequest)
                             .Select(r => new
                             {
                                 Player = r.RequestedFor,
@@ -95,7 +95,7 @@ namespace TauManager.BusinessLogic
                                 pp => pp.Player.Name
                             ),
                         SpecialRequests = l.Requests
-                            .Where(r => r.RequestedFor.SyndicateId == syndicateId)
+                            .Where(r => r.RequestedFor.SyndicateId == syndicateId && !r.IsPersonalRequest)
                             .Where(r => !String.IsNullOrEmpty(r.SpecialOfferDescription))
                             .Select(r => new
                             {

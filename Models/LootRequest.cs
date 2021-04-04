@@ -18,5 +18,6 @@ namespace TauManager.Models
         public string SpecialOfferDescription { get; set; }
         public virtual PlayerListPositionHistory HistoryEntry { get; set; }
         public bool IsCollectorRequest { get; set; }
+        public bool IsPersonalRequest { get; set; }
     }
 }
