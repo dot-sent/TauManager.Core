@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using TauManager.Models;
 using TauManager.ViewModels;
@@ -16,5 +17,6 @@ namespace TauManager.BusinessLogic
         LootOverviewViewModel GetOverview(int[] display, int itemTier, int itemType, int syndicateId);
         LootitemRequestsViewModel GetLootRequestsInfo(int campaignLootId);
         Task<bool> AwardLoot(int lootId, int? lootRequestId, CampaignLoot.CampaignLootStatus status, bool? lootAvailableToOtherSyndicates);
+        List<LootItemViewModel> GetPersonalRequests(int? playerId, int syndicateId);
     }
 }

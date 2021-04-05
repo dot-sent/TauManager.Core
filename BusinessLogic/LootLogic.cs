@@ -318,6 +318,12 @@ namespace TauManager.BusinessLogic
                     .ToList(),
                 LootStatuses = EnumExtensions.ToDictionary<int>(typeof(CampaignLoot.CampaignLootStatus)),
                 TypeFilters = EnumExtensions.ToDictionary<int>(typeof(Item.ItemTypeFilters)),
+                PersonalRequestLootIds = _dbContext.LootRequest
+                    .Where(lr => lr.IsPersonalRequest &&
+                        (lr.Status == LootRequest.LootRequestStatus.Interested ||
+                        lr.Status == LootRequest.LootRequestStatus.SpecialOffer))
+                    .Select(lr => lr.LootId)
+                    .ToList(),
                 Display = display,
                 ItemTier = itemTier,
                 ItemType = itemType
@@ -403,6 +409,86 @@ namespace TauManager.BusinessLogic
             }
             await _dbContext.SaveChangesAsync();
             return true;
+        }
+
+        public List<LootItemViewModel> GetPersonalRequests(int? playerId, int syndicateId)
+        {
+            var players = _dbContext.Player.Where(p => p.SyndicateId == syndicateId).OrderBy(p => p.Name).AsEnumerable();
+            var currentPlayer = _dbContext.Player.SingleOrDefault(p => p.Id == playerId);
+            var playersOrdered = _dbContext.PlayerListPositionHistory.GroupBy(plph => plph.PlayerId)
+                .Select(g => new {
+                    PlayerId =  g.Key,
+                    Position = g.Max(ph => ph.Id)
+                })
+                .Join(
+                    _dbContext.Player,
+                    ph => ph.PlayerId,
+                    p => p.Id,
+                    (ph, p) => new { Player = p, Position = ph.Position }
+                )
+                .Where(php => php.Player.SyndicateId == syndicateId)
+                .OrderBy(p => p.Position)
+                .Select(p => p.Player);
+            var playerPositions = playersOrdered.Select(p => p.Id).ToList();
+            var activePlayerPositions = playersOrdered.Where(p => p.Active).Select(p => p.Id).ToList();
+            var lootStatuses = EnumExtensions.ToDictionary<int>(typeof(CampaignLoot.CampaignLootStatus));
+            var lootWithPersonalRequests = _dbContext.LootRequest
+                .Include(lr => lr.Loot)
+                .ThenInclude(l => l.Campaign)
+                .Include(lr => lr.Loot)
+                .ThenInclude(l => l.Requests)
+                .ThenInclude(lr => lr.RequestedFor)
+                .Include(lr => lr.Loot)
+                .ThenInclude(l => l.Item)
+                .Where(lr => lr.IsPersonalRequest &&
+                    lr.Loot.Campaign.SyndicateId == syndicateId &&
+                    (lr.Status == LootRequest.LootRequestStatus.Interested || 
+                     lr.Status == LootRequest.LootRequestStatus.SpecialOffer))
+                .Select(lr => lr.Loot)
+                .Distinct()
+                .ToList();
+
+            var model = lootWithPersonalRequests
+                .Select(l => new LootItemViewModel{
+                    Loot = l,
+                    ShowApplyButton = true,
+                    ShowEditControls = true, // Personal requests overview should be available to officers only anyway
+                    ShowAwardButton = true, // Ditto
+                    TierRestriction = false,
+                    ShowSingleItemInterface = false,
+                    Players = players,
+                    Request = l.Requests.SingleOrDefault(r => r.RequestedForId == playerId && r.IsPersonalRequest),
+                    RequestExists = l.Requests.Any(r => r.RequestedForId == playerId && r.IsPersonalRequest),
+                    // AllRequests = null,
+                    // SpecialRequests = null,
+                    AllRequests = l.Requests
+                        .Where(r => r.RequestedFor.SyndicateId == syndicateId && r.IsPersonalRequest)
+                        .Select(r => new
+                        {
+                            Player = r.RequestedFor,
+                            Position = activePlayerPositions.IndexOf(r.RequestedForId) + 1,
+                        })
+                        .OrderBy(pp => pp.Position)
+                        .ToDictionary(
+                            pp => pp.Position,
+                            pp => pp.Player.Name
+                        ),
+                    SpecialRequests = l.Requests
+                        .Where(r => r.RequestedFor.SyndicateId == syndicateId && r.IsPersonalRequest && r.Status == LootRequest.LootRequestStatus.SpecialOffer)
+                        .Select(r => new
+                        {
+                            Offer = r.SpecialOfferDescription,
+                            Position = activePlayerPositions.IndexOf(r.RequestedForId) + 1,
+                        })
+                        .OrderBy(pp => pp.Position)
+                        .ToDictionary(
+                            pp => pp.Position,
+                            pp => pp.Offer
+                        ),
+                    LootStatuses = lootStatuses,
+                })
+                .ToList();
+            return model;
         }
     }
 }
