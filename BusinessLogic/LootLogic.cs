@@ -277,7 +277,7 @@ namespace TauManager.BusinessLogic
         /// <param name="itemTier">0 - all tiers; 1,2,3,4,5 - particular tier</param>
         /// <param name="itemType">enum Item.ItemTypeFilters: 0 - all types, 1 - armors, 2 - shortRangeWeapons, 3 - longRangeWeapons</param>
         /// <param name="syndicateId">Syndicate ID</param>
-        public LootOverviewViewModel GetOverview(int[] display, int itemTier, int itemType, int syndicateId)
+        public LootOverviewViewModel GetOverview(int? playerId, int[] display, int itemTier, int itemType, int syndicateId)
         {
             var lootStatuses = EnumExtensions.ToDictionary<int>(typeof(CampaignLoot.CampaignLootStatus));
             if (display == null || display.Length == 0)
@@ -320,6 +320,7 @@ namespace TauManager.BusinessLogic
                 TypeFilters = EnumExtensions.ToDictionary<int>(typeof(Item.ItemTypeFilters)),
                 PersonalRequestLootIds = _dbContext.LootRequest
                     .Where(lr => lr.IsPersonalRequest &&
+                        lr.RequestedForId == playerId &&
                         (lr.Status == LootRequest.LootRequestStatus.Interested ||
                         lr.Status == LootRequest.LootRequestStatus.SpecialOffer))
                     .Select(lr => lr.LootId)
