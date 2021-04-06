@@ -15,6 +15,7 @@ namespace TauManager.ViewModels
         public bool ShowSingleItemInterface { get; set; }
         public bool ShowEditControls { get; set; }
         public bool ShowAwardButton { get; set; }
+        public bool ShowRequestsExplicitly { get; set; }
         public Dictionary<int,string> LootStatuses { get; set; }
         public IEnumerable<Player> Players { get; set; }
         [DefaultValue(null)]

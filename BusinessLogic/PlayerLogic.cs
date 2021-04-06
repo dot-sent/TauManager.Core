@@ -423,7 +423,7 @@ namespace TauManager.BusinessLogic
             return result;
         }
 
-        public HomePageViewModel GetHomePageModel(int? playerId)
+        public HomePageViewModel GetHomePageModel(int? playerId, bool isOfficer)
         {
             if (!playerId.HasValue) return new HomePageViewModel();
             var player = _dbContext.Player.SingleOrDefault(p => p.Id == playerId.Value);
@@ -472,7 +472,30 @@ namespace TauManager.BusinessLogic
                         To = player,
                     });
                 }
-
+            }
+            if (isOfficer)
+            {
+                var pendingPersonalRequestsCount = _dbContext.LootRequest
+                    .Include(lr => lr.RequestedFor)
+                    .Include(lr => lr.Loot)
+                    .ThenInclude(l => l.Campaign)
+                    .Count(lr => lr.IsPersonalRequest &&
+                        (lr.Loot.Campaign.SyndicateId == syndicateId ||
+                        lr.RequestedFor.SyndicateId == syndicateId) &&
+                        (lr.Status == LootRequest.LootRequestStatus.Interested ||
+                        lr.Status == LootRequest.LootRequestStatus.SpecialOffer) &&
+                        lr.Loot.Status == CampaignLoot.CampaignLootStatus.StaysWithSyndicate
+                    );
+                if (pendingPersonalRequestsCount > 0)
+                {
+                    announcements.Add(new Announcement{
+                        FromId = null,
+                        Text = String.Format("There are {0} pending personal loot request(s), please review.", pendingPersonalRequestsCount),
+                        Style = Announcement.AnnouncementStyle.Info,
+                        ToId = playerId,
+                        To = player,
+                    });
+                }
             }
             var model = new HomePageViewModel{
                 Metrics = GetSyndicatePlayers(playerId, false, syndicateId ?? 0),

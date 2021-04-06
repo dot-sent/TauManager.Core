@@ -7,7 +7,7 @@ namespace TauManager.BusinessLogic
     public interface IPlayerLogic
     {
         SyndicatePlayersViewModel GetSyndicatePlayers(int? playerId, bool includeInactive, int syndicateId);
-        HomePageViewModel GetHomePageModel(int? playerId);
+        HomePageViewModel GetHomePageModel(int? playerId, bool isOfficer);
         Task<string> ParsePlayerPageAsync(string fileContents, int syndicateId);
         Task<bool> SetPlayerActiveAsync(int playerId, bool status);
         PlayerDetailsViewModel GetPlayerDetails(int id, bool? loadAll);

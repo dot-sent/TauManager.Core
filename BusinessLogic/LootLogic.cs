@@ -336,7 +336,7 @@ namespace TauManager.BusinessLogic
             in the future. Currently it shouldn't be possible anyway since the code related
             to creating loot requests has those checks.
         */
-        public LootitemRequestsViewModel GetLootRequestsInfo(int campaignLootId)
+        public LootitemRequestsViewModel GetLootRequestsInfo(int campaignLootId, bool personalRequests)
         {
             var item = _dbContext.CampaignLoot
                 .Include(i => i.Requests)
@@ -365,7 +365,7 @@ namespace TauManager.BusinessLogic
             var activePlayerPositions = playersOrdered.Where(p => p.Active).Select(p => p.Id).ToList();
 
             return new LootitemRequestsViewModel{ Requests = item.Requests
-                .Where(r => !r.IsPersonalRequest)
+                .Where(r => r.IsPersonalRequest == personalRequests)
                 .OrderBy(
                     r => activePlayerPositions.IndexOf(r.RequestedForId)
                 )
@@ -385,7 +385,7 @@ namespace TauManager.BusinessLogic
              };
         }
 
-        public async Task<bool> AwardLoot(int lootId, int? lootRequestId, CampaignLoot.CampaignLootStatus status, bool? lootAvailableToOtherSyndicates)
+        public async Task<bool> AwardLoot(int lootId, int? lootRequestId, CampaignLoot.CampaignLootStatus status, bool? lootAvailableToOtherSyndicates, bool dropRequestorDown = true)
         {
             var loot = _dbContext.CampaignLoot.SingleOrDefault(cl => cl.Id == lootId);
             if (loot == null) return false;
@@ -398,14 +398,18 @@ namespace TauManager.BusinessLogic
             {
                 loot.HolderId = lootRequest.RequestedForId;
                 lootRequest.Status = LootRequest.LootRequestStatus.Awarded;
-                var newHistoryEntry = new PlayerListPositionHistory
+
+                if(dropRequestorDown)
                 {
-                    LootRequest = lootRequest,
-                    PlayerId = lootRequest.RequestedForId,
-                    CreatedAt = DateTime.Now,
-                    Comment = "Drop associated with loot request",
-                };
-                await _dbContext.AddAsync(newHistoryEntry);
+                    var newHistoryEntry = new PlayerListPositionHistory
+                    {
+                        LootRequest = lootRequest,
+                        PlayerId = lootRequest.RequestedForId,
+                        CreatedAt = DateTime.Now,
+                        Comment = "Drop associated with loot request",
+                    };
+                    await _dbContext.AddAsync(newHistoryEntry);
+                }
             }
             await _dbContext.SaveChangesAsync();
             return true;
@@ -441,7 +445,8 @@ namespace TauManager.BusinessLogic
                 .Include(lr => lr.Loot)
                 .ThenInclude(l => l.Item)
                 .Where(lr => lr.IsPersonalRequest &&
-                    lr.Loot.Campaign.SyndicateId == syndicateId &&
+                    (lr.Loot.Campaign.SyndicateId == syndicateId ||
+                    lr.RequestedFor.SyndicateId == syndicateId) &&
                     (lr.Status == LootRequest.LootRequestStatus.Interested || 
                      lr.Status == LootRequest.LootRequestStatus.SpecialOffer))
                 .Select(lr => lr.Loot)
@@ -454,6 +459,7 @@ namespace TauManager.BusinessLogic
                     ShowApplyButton = true,
                     ShowEditControls = true, // Personal requests overview should be available to officers only anyway
                     ShowAwardButton = true, // Ditto
+                    ShowRequestsExplicitly = true, // Always show requests here
                     TierRestriction = false,
                     ShowSingleItemInterface = false,
                     Players = players,
