@@ -184,7 +184,6 @@ namespace TauManager.BusinessLogic
             if (lootItem == null) return false;
             var player = _dbContext.Player.SingleOrDefault(p => p.Id == playerId);
             if (player == null) return false;
-            if (lootItem.Campaign.SyndicateId != player.SyndicateId) return false; // TODO: Allow cross-syndicate LRs?
             var lootRequest = _dbContext.LootRequest.SingleOrDefault(lr => lr.LootId == lootId && lr.RequestedForId == playerId);
             if (deleteRequest)
             {
@@ -307,6 +306,12 @@ namespace TauManager.BusinessLogic
                 OtherSyndicatesLoot = _dbContext.CampaignLoot
                     .Include(cl => cl.Campaign)
                     .ThenInclude(clc => clc.Syndicate)
+                    .Where(l => itemTier == 0 || l.Item.Tier == itemTier)
+                    .Where(l => itemType == (int)Item.ItemTypeFilters.All ||
+                        (itemType == (int)Item.ItemTypeFilters.Armor && l.Item.Type == Item.ItemType.Armor) ||
+                        (itemType == (int)Item.ItemTypeFilters.ShortRangeWeapon && l.Item.WeaponRange == Item.ItemWeaponRange.Short) ||
+                        (itemType == (int)Item.ItemTypeFilters.LongRangeWeapon && l.Item.WeaponRange == Item.ItemWeaponRange.Long)
+                    )
                     .Where(cl => cl.Campaign.SyndicateId != syndicateId && 
                         cl.AvailableToOtherSyndicates == true &&
                         (cl.Status == CampaignLoot.CampaignLootStatus.Undistributed ||
@@ -418,7 +423,7 @@ namespace TauManager.BusinessLogic
 
         public List<LootItemViewModel> GetPersonalRequests(int? playerId, int syndicateId)
         {
-            var players = _dbContext.Player.Where(p => p.SyndicateId == syndicateId).OrderBy(p => p.Name).AsEnumerable();
+            var players = _dbContext.Player.OrderBy(p => p.Name).AsEnumerable();
             var currentPlayer = _dbContext.Player.SingleOrDefault(p => p.Id == playerId);
             var playersOrdered = _dbContext.PlayerListPositionHistory.GroupBy(plph => plph.PlayerId)
                 .Select(g => new {
@@ -431,7 +436,6 @@ namespace TauManager.BusinessLogic
                     p => p.Id,
                     (ph, p) => new { Player = p, Position = ph.Position }
                 )
-                .Where(php => php.Player.SyndicateId == syndicateId)
                 .OrderBy(p => p.Position)
                 .Select(p => p.Player);
             var playerPositions = playersOrdered.Select(p => p.Id).ToList();
@@ -469,7 +473,7 @@ namespace TauManager.BusinessLogic
                     // AllRequests = null,
                     // SpecialRequests = null,
                     AllRequests = l.Requests
-                        .Where(r => r.RequestedFor.SyndicateId == syndicateId && r.IsPersonalRequest)
+                        .Where(r => r.IsPersonalRequest)
                         .Select(r => new
                         {
                             Player = r.RequestedFor,
@@ -481,7 +485,7 @@ namespace TauManager.BusinessLogic
                             pp => pp.Player.Name
                         ),
                     SpecialRequests = l.Requests
-                        .Where(r => r.RequestedFor.SyndicateId == syndicateId && r.IsPersonalRequest && r.Status == LootRequest.LootRequestStatus.SpecialOffer)
+                        .Where(r => r.IsPersonalRequest && r.Status == LootRequest.LootRequestStatus.SpecialOffer)
                         .Select(r => new
                         {
                             Offer = r.SpecialOfferDescription,
