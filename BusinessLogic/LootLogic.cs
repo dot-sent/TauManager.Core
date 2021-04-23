@@ -337,11 +337,6 @@ namespace TauManager.BusinessLogic
             return model;
         }
         
-        /* 
-            I'm not adding syndicateId check here since we might allow cross-syndicate requests
-            in the future. Currently it shouldn't be possible anyway since the code related
-            to creating loot requests has those checks.
-        */
         public LootitemRequestsViewModel GetLootRequestsInfo(int campaignLootId, bool personalRequests)
         {
             var item = _dbContext.CampaignLoot

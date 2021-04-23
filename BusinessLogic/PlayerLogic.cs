@@ -494,6 +494,10 @@ namespace TauManager.BusinessLogic
                         Style = Announcement.AnnouncementStyle.Info,
                         ToId = playerId,
                         To = player,
+                        // I'm deliberately putting a hardcoded URL here in order
+                        // not to add webserver-related modules to the Core project.
+                        Url = "/Campaigns/PersonalRequests",
+                        UrlButtonText = "Go to the Personal Requests page",
                     });
                 }
             }
