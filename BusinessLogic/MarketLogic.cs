@@ -57,7 +57,7 @@ namespace TauManager.BusinessLogic
                         (filters.MinPiercing == null || filters.MinPiercing <= 0 || 
                             (i.Item.Piercing.HasValue && i.Item.Piercing >= filters.MinPiercing)) &&
                         (filters.MinTier == null || filters.MinTier <= 1 || i.Item.Tier >= filters.MinTier) &&
-                        (filters.MaxTier == null || filters.MaxTier >= 5 || i.Item.Tier <= filters.MaxTier) &&
+                        (filters.MaxTier == null || filters.MaxTier >= TauManager.Constants.MaxTier || i.Item.Tier <= filters.MaxTier) &&
                         // Bundle-level filters
                         (filters.AdTypes == null || filters.AdTypes.Count() == 0 ||
                             (filters.AdTypes != null && filters.AdTypes.Contains(MarketAd.AdType.Buy) && i.Bundle.Type == MarketAdBundle.BundleType.Request) ||

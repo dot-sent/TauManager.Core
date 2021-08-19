@@ -273,7 +273,7 @@ namespace TauManager.BusinessLogic
         }
         /// <summary>This method retrieves loot by syndicate/tier/itemType.</summary>
         /// <param name="display">Array of lootStatuses-based filters</param>
-        /// <param name="itemTier">0 - all tiers; 1,2,3,4,5 - particular tier</param>
+        /// <param name="itemTier">0 - all tiers; 1,2,3,4,5,6,...MaxTier - particular tier</param>
         /// <param name="itemType">enum Item.ItemTypeFilters: 0 - all types, 1 - armors, 2 - shortRangeWeapons, 3 - longRangeWeapons</param>
         /// <param name="syndicateId">Syndicate ID</param>
         public LootOverviewViewModel GetOverview(int? playerId, int[] display, int itemTier, int itemType, int syndicateId)

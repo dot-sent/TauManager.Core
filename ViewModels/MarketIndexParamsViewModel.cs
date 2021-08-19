@@ -34,7 +34,7 @@ namespace TauManager.ViewModels
             get 
             {
                 return (MinTier != null && MinTier > 1) ||
-                    (MaxTier != null && MaxTier < 5) ||
+                    (MaxTier != null && MaxTier < TauManager.Constants.MaxTier) ||
                     (MinEnergy != null && MinEnergy > 0) ||
                     (MinImpact != null && MinImpact > 0) ||
                     (MinPiercing != null && MinPiercing > 0) ||

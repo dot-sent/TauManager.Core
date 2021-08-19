@@ -564,7 +564,8 @@ namespace TauManager.BusinessLogic
                 .OrderByDescending(c => c.UTCDateTime)
                 .Where(c => (c.Difficulty == Campaign.CampaignDifficulty.Hard ||
                     c.Difficulty == Campaign.CampaignDifficulty.Extreme) &&
-                    c.Tiers.HasValue && c.Tiers.Value > 15 &&
+                    c.Tiers.HasValue &&
+                    ((c.Tiers.Value > 15 && c.Id <= 262) || c.Tiers.Value > 31) &&
                     (c.Status == Campaign.CampaignStatus.Completed || c.Status == Campaign.CampaignStatus.Failed) &&
                     c.SyndicateId == syndicateId &&
                     !c.ExcludeFromLeaderboards)

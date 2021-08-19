@@ -85,7 +85,7 @@ namespace TauManager.Models
                 if (Tiers.HasValue)
                 {
                     var tiers_temp = Tiers.Value;
-                    for (var tier = 5; tier > 0; tier--)
+                    for (var tier = TauManager.Constants.MaxTier; tier > 0; tier--)
                     {
                         if (tiers_temp >= Math.Pow(2, tier-1))
                         {
