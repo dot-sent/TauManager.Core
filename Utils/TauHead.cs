@@ -13,6 +13,12 @@ namespace TauManager.Utils
         public const string UrlBase = "https://www.tauhead.com";
         public const string ItemUrlBase = "https://www.tauhead.com/item/";
 
+        public string UrlBaseEx {
+            get{
+                return ItemUrlBase;
+            }
+        }
+
         public string UrlFromSlug(string slug)
         {
             return ItemUrlBase + slug;

@@ -348,8 +348,7 @@ namespace TauManager.BusinessLogic
                         var epic = _dbContext.Item.SingleOrDefault(i => i.Slug == slug);
                         if (epic == null) 
                         {
-                            var tauHeadUrl = TauHead.UrlBase + "/" + urlParts.TakeLast(2).Aggregate((result, item) => result + "/" + item);
-                            epic = await _tauHead.GetItemData(tauHeadUrl);
+                            epic = await _tauHead.GetItemData(_tauHead.UrlFromSlug(slug));
                             if (epic == null) // Item is missing from TauHead
                             {
                                 model.ErrorMessages.Add(
@@ -364,6 +363,7 @@ namespace TauManager.BusinessLogic
                                         slug
                                     ));
                                 await _dbContext.AddAsync(epic);
+                                await _dbContext.SaveChangesAsync();
                             }
                         }
                         if (epic != null)

@@ -9,5 +9,9 @@ namespace TauManager.Utils
         string UrlFromSlug(string slug);
         Task<Item> GetItemData(string url);
         IDictionary<string, Item> BulkParseItems(string jsonContent);
+
+        string UrlBaseEx {
+            get;
+        }
     }
 }
