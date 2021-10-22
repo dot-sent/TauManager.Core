@@ -448,7 +448,8 @@ namespace TauManager.BusinessLogic
                     (lr.Loot.Campaign.SyndicateId == syndicateId ||
                     lr.RequestedFor.SyndicateId == syndicateId) &&
                     (lr.Status == LootRequest.LootRequestStatus.Interested || 
-                     lr.Status == LootRequest.LootRequestStatus.SpecialOffer))
+                     lr.Status == LootRequest.LootRequestStatus.SpecialOffer) &&
+                    lr.Loot.Status == CampaignLoot.CampaignLootStatus.StaysWithSyndicate)
                 .Select(lr => lr.Loot)
                 .Distinct()
                 .ToList();
