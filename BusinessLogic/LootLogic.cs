@@ -39,6 +39,8 @@ namespace TauManager.BusinessLogic
                 )
                 .OrderBy(p => p.Position)
                 .Select(p => p.Player)
+                .Include(p => p.LootRequests)
+                .ThenInclude(lr => lr.Loot)
                 .Where(p => (includeInactive || p.Active) && p.SyndicateId == syndicateId);
             model.CurrentOrder = playerPositions;
             model.AllPlayers = _dbContext.Player.Where(p => p.SyndicateId == syndicateId).OrderBy(p => p.Name).AsEnumerable();
