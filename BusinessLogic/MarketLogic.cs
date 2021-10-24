@@ -205,7 +205,7 @@ namespace TauManager.BusinessLogic
         private readonly Regex _regexAny = new Regex(@"^\s?(\?|\*)\s?$$");
         private readonly Regex _regexFree = new Regex(@"^\s?(0|free)?\s?$");
         private readonly Regex _regexCredits = new Regex(@"^([\d]+(?:[.][\d]+)?)\s?(?:cr|c)?$");
-        private readonly Regex _regexUrl = new Regex(@"^(?:(?:https://alpha.taustation.space/item/)|(?:https://www.tauhead.com/item/))(.+)$");
+        private readonly Regex _regexUrl = new Regex(@"^(?:(?:https://taustation.space/item/)|(?:https://tracker.tauguide.de/v1/item/by-slug/))(.+)$");
         private readonly Regex _regexRation = new Regex(@"^[Tt]([\d]+)\s?(?:ration|R|Ration|r)$");
         private async Task<MarketAdParseInfo> ParseMarketAdPart(string input)
         {

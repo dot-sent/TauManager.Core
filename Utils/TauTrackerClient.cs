@@ -42,7 +42,7 @@ namespace TauManager.Utils
         {
             Item item;
             Item.ItemType itemType;
-            var itemTypeParseResult = Enum.TryParse<Item.ItemType>(responseObject.type, true, out itemType);
+            var itemTypeParseResult = Enum.TryParse<Item.ItemType>(responseObject.type.Replace(" ", ""), true, out itemType);
             if (!itemTypeParseResult) return null;
             Item.ItemRarity ItemRarity;
             var itemRarityParseResult = Enum.TryParse<Item.ItemRarity>(responseObject.rarity, true, out ItemRarity);
