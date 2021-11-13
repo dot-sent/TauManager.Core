@@ -100,6 +100,9 @@ namespace TauManager.Models
         public string Comments { get; set; }
         [DefaultValue(false)]
         public bool ExcludeFromLeaderboards { get; set; }
+        [DefaultValue(false)]
+        public bool Archived { get; set; }
+        public string ArchiveReason { get; set; }
         public virtual IEnumerable<CampaignSignup> Signups { get; set; }
         public Dictionary<int, int> SignupsDict 
         {
