@@ -27,12 +27,6 @@ namespace TauManager.Migrations.TauDb
                         .HasColumnType("integer")
                         .HasAnnotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.SerialColumn);
 
-                    b.Property<string>("ArchiveReason")
-                        .HasColumnType("text");
-
-                    b.Property<bool>("Archived")
-                        .HasColumnType("boolean");
-
                     b.Property<string>("Comments")
                         .HasColumnType("text");
 
